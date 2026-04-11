@@ -30,7 +30,7 @@ func GetAllFilm(c *fiber.Ctx) error {
 	var films []models.Film
 	for rows.Next() {
 		var f models.Film
-		rows.Scan(&f.ID, &f.Title, &f.Duration, &f.Rating)
+		rows.Scan(&f.ID, &f.Title, &f.Duration, &f.Rating, &f.Synopsis)
 		films = append(films, f)
 	}
 
@@ -56,11 +56,12 @@ func GetFilmByID(c *fiber.Ctx) error {
 	defer db.Close()
 
 	var film models.Film
-	err := db.QueryRow("SELECT id, title, duration, rating FROM film WHERE id = ?", id).Scan(
+	err := db.QueryRow("SELECT id, title, duration, rating, synopsis FROM film WHERE id = ?", id).Scan(
 		&film.ID,
 		&film.Title,
 		&film.Duration,
 		&film.Rating,
+		&film.Synopsis,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -95,7 +96,7 @@ func CreateFilm(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	_, err := db.Exec("INSERT INTO film (title, duration, rating) VALUES (?, ?, ?)", f.Title, f.Duration, f.Rating)
+	_, err := db.Exec("INSERT INTO film (title, duration, rating, synopsis) VALUES (?, ?, ?, ?)", f.Title, f.Duration, f.Rating, f.Synopsis)
 	if err != nil {
 		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -127,7 +128,7 @@ func UpdateFilm(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	_, err := db.Exec("UPDATE film SET title=?, duration=?, rating=? WHERE id=?", f.Title, f.Duration, f.Rating, id)
+	_, err := db.Exec("UPDATE film SET title=?, duration=?, rating=?, synopsis=? WHERE id=?", f.Title, f.Duration, f.Rating, f.Synopsis, id)
 	if err != nil {
 		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
 	}
