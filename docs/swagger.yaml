@@ -1,0 +1,409 @@
+basePath: /api/v1
+definitions:
+  handlers.userResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.Film:
+    properties:
+      duration:
+        type: integer
+      id:
+        type: integer
+      rating:
+        type: string
+      title:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        description: 'enum: "user" atau "admin"'
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: API backend untuk aplikasi pemesanan tiket bioskop
+  title: Ticketing API
+  version: "1.0"
+paths:
+  /film:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan seluruh daftar film dari database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Film'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua data film
+      tags:
+      - Film
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data film baru (khusus admin)
+      parameters:
+      - description: Data film
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Film'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Film'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat film baru
+      tags:
+      - Film
+  /film/{id}:
+    delete:
+      description: Menghapus data film berdasarkan ID (khusus admin)
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus film
+      tags:
+      - Film
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan detail satu film berdasarkan parameter ID
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Film'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil data film berdasarkan ID
+      tags:
+      - Film
+    patch:
+      consumes:
+      - application/json
+      description: Memperbarui data film berdasarkan ID (khusus admin)
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data film
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Film'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Film'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update film
+      tags:
+      - Film
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Autentikasi user menggunakan email dan password untuk mendapatkan
+        JWT token
+      parameters:
+      - description: Kredensial Login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User Login
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Mendaftarkan user baru ke sistem
+      parameters:
+      - description: Data Registrasi
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User Register
+      tags:
+      - Auth
+  /user:
+    get:
+      description: Mengembalikan seluruh daftar user tanpa field password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.userResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil semua user
+      tags:
+      - User
+  /user/{id}:
+    delete:
+      description: Menghapus user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus user
+      tags:
+      - User
+    get:
+      description: Mengembalikan detail user tanpa field password berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.userResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil user berdasarkan ID
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah data user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data user
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.userResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - User
+securityDefinitions:
+  BearerAuth:
+    description: 'Masukkan token dengan format: Bearer <spasi> token-anda'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
