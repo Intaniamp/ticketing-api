@@ -1,11 +1,22 @@
 package models
 
 type Film struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Duration int    `json:"duration"`
-	Rating   string `json:"rating"`
-	Synopsis string `json:"synopsis"`
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Duration    int    `json:"duration"`
+	Synopsis    string `json:"synopsis"`
+	PosterURL   string `json:"poster_url"`
+	AgeRating   string `json:"age_rating"`
+	ReleaseYear int    `json:"release_year"`
+}
+
+// untuk request body create/update film
+type FilmRequest struct {
+	Title       string `json:"title" example:"Scream 7"`
+	Duration    int    `json:"duration" example:"114"`
+	Synopsis    string `json:"synopsis" example:"Ghostface is back in town..."`
+	AgeRating   string `json:"age_rating" example:"16+"`
+	ReleaseYear int    `json:"release_year" example:"2026"`
 }
 
 type ErrorResponse struct {
