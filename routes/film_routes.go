@@ -16,4 +16,5 @@ func FilmRoutes(api fiber.Router) {
 	film.Post("/", middleware.JWTProtected, middleware.AdminOnly, handlers.CreateFilm)
 	film.Patch("/:id", middleware.JWTProtected, middleware.AdminOnly, handlers.UpdateFilm)
 	film.Delete("/:id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteFilm)
+	film.Post("/:id/poster", middleware.JWTProtected, middleware.AdminOnly, handlers.UploadPoster)
 }
