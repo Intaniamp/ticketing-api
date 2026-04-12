@@ -9,8 +9,10 @@ import (
 
 func UserRoutes(api fiber.Router) {
 	user := api.Group("/user")
-	user.Get("/", middleware.JWTProtected, middleware.AdminOnly, handlers.GetAllUsers)
 	user.Get("/:id", middleware.JWTProtected, handlers.GetUserByID)
 	user.Patch("/:id", middleware.JWTProtected, handlers.UpdateUser)
+
+	// Only admin
+	user.Get("/", middleware.JWTProtected, middleware.AdminOnly, handlers.GetAllUsers)
 	user.Delete("/:id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteUser)
 }
