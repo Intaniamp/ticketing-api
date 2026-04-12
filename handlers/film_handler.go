@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
+	"path/filepath"
 	"ticketing-api/config"
 	"ticketing-api/models"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,7 +25,8 @@ func GetAllFilm(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, title, duration, rating FROM film")
+	// Ambil semua kolom yang ada di struct Film
+	rows, err := db.Query("SELECT id, title, duration, synopsis, poster_url, age_rating, release_year FROM film")
 	if err != nil {
 		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -30,7 +34,8 @@ func GetAllFilm(c *fiber.Ctx) error {
 	var films []models.Film
 	for rows.Next() {
 		var f models.Film
-		rows.Scan(&f.ID, &f.Title, &f.Duration, &f.Rating, &f.Synopsis)
+		// Scan semua kolom secara berurutan
+		rows.Scan(&f.ID, &f.Title, &f.Duration, &f.Synopsis, &f.PosterURL, &f.AgeRating, &f.ReleaseYear)
 		films = append(films, f)
 	}
 
@@ -44,7 +49,9 @@ func GetAllFilm(c *fiber.Ctx) error {
 //	@Tags			Film
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int	true	"Film ID"
+//
+// @Param id path int true "Film ID"
+//
 //	@Success		200	{object}	models.Film
 //	@Failure		404	{object}	models.ErrorResponse
 //	@Failure		500	{object}	models.ErrorResponse
@@ -56,12 +63,14 @@ func GetFilmByID(c *fiber.Ctx) error {
 	defer db.Close()
 
 	var film models.Film
-	err := db.QueryRow("SELECT id, title, duration, rating, synopsis FROM film WHERE id = ?", id).Scan(
+	err := db.QueryRow("SELECT id, title, duration, synopsis, poster_url, age_rating, release_year FROM film WHERE id = ?", id).Scan(
 		&film.ID,
 		&film.Title,
 		&film.Duration,
-		&film.Rating,
 		&film.Synopsis,
+		&film.PosterURL,
+		&film.AgeRating,
+		&film.ReleaseYear,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -82,26 +91,31 @@ func GetFilmByID(c *fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.Film	true	"Data film"
+//
+// @Param request body models.FilmRequest true "Data film"
+//
 //	@Success		201		{object}	models.Film
 //	@Failure		400		{object}	models.ErrorResponse
 //	@Failure		500		{object}	models.ErrorResponse
 //	@Router			/film [post]
 func CreateFilm(c *fiber.Ctx) error {
-	var f models.Film
-	if err := c.BodyParser(&f); err != nil {
+	var req models.FilmRequest // Pakai struct Request
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(models.ErrorResponse{Message: "Invalid input"})
 	}
 
 	db := config.ConnectDB()
 	defer db.Close()
 
-	_, err := db.Exec("INSERT INTO film (title, duration, rating, synopsis) VALUES (?, ?, ?, ?)", f.Title, f.Duration, f.Rating, f.Synopsis)
+	// Update query sesuai kolom baru di DB
+	query := "INSERT INTO film (title, duration, synopsis, age_rating, release_year) VALUES (?, ?, ?, ?, ?)"
+	_, err := db.Exec(query, req.Title, req.Duration, req.Synopsis, req.AgeRating, req.ReleaseYear)
+
 	if err != nil {
 		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
 	}
 
-	return c.Status(201).JSON(f)
+	return c.Status(201).JSON(req)
 }
 
 // UpdateFilm godoc
@@ -113,27 +127,29 @@ func CreateFilm(c *fiber.Ctx) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		int			true	"Film ID"
-//	@Param			request	body		models.Film	true	"Data film"
+//	@Param			request	body		models.FilmRequest	true	"Data film"
 //	@Success		200		{object}	models.Film
 //	@Failure		400		{object}	models.ErrorResponse
 //	@Failure		500		{object}	models.ErrorResponse
 //	@Router			/film/{id} [patch]
 func UpdateFilm(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var f models.Film
-	if err := c.BodyParser(&f); err != nil {
+	var req models.FilmRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(models.ErrorResponse{Message: "Invalid input"})
 	}
 
 	db := config.ConnectDB()
 	defer db.Close()
 
-	_, err := db.Exec("UPDATE film SET title=?, duration=?, rating=?, synopsis=? WHERE id=?", f.Title, f.Duration, f.Rating, f.Synopsis, id)
+	query := "UPDATE film SET title=?, duration=?, synopsis=?, age_rating=?, release_year=? WHERE id=?"
+	_, err := db.Exec(query, req.Title, req.Duration, req.Synopsis, req.AgeRating, req.ReleaseYear, id)
+
 	if err != nil {
 		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
 	}
 
-	return c.JSON(f)
+	return c.JSON(req)
 }
 
 // DeleteFilm godoc
@@ -159,4 +175,66 @@ func DeleteFilm(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(204)
+}
+
+// UploadPoster godoc
+//
+//  @Summary        Upload Poster Film
+//  @Description    Mengupload file poster untuk film tertentu (khusus admin)
+//  @Tags           Film
+//  @Security       BearerAuth
+//  @Accept         multipart/form-data
+//  @Produce        json
+// @Param id path int true "Film ID"
+// @Param poster formData file true "File Gambar"
+//  @Success 200 {object} map[string]string
+//  @Failure 400 {object} models.ErrorResponse
+//  @Failure 500 {object} models.ErrorResponse
+//  @Router /film/{id}/poster [post]
+func UploadPoster(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	file, err := c.FormFile("poster")
+	if err != nil {
+		return c.Status(400).JSON(models.ErrorResponse{Message: "File poster tidak ditemukan"})
+	}
+
+	var maxFileSize int64 = 2 * 1024 * 1024 // 2MB
+	if file.Size > maxFileSize {
+		return c.Status(400).JSON(models.ErrorResponse{Message: "Ukuran file terlalu besar! Maksimal 2MB"})
+	}
+
+	extension := filepath.Ext(file.Filename)
+	allowedExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".webp": true,
+	}
+
+	if !allowedExtensions[extension] {
+		return c.Status(400).JSON(models.ErrorResponse{Message: "Format file tidak didukung! Gunakan jpg, jpeg, atau png"})
+	}
+
+	newFileName := fmt.Sprintf("%d%s", time.Now().Unix(), extension)
+
+	savePath := filepath.Join("public/uploads/posters", newFileName)
+	dbPath := fmt.Sprintf("uploads/posters/%s", newFileName)
+
+	if err := c.SaveFile(file, savePath); err != nil {
+		return c.Status(500).JSON(models.ErrorResponse{Message: "Gagal menyimpan file di server"})
+	}
+
+	db := config.ConnectDB()
+	defer db.Close()
+
+	_, err = db.Exec("UPDATE film SET poster_url = ? WHERE id = ?", dbPath, id)
+	if err != nil {
+		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message":    "Poster berhasil diupload",
+		"poster_url": dbPath,
+	})
 }
