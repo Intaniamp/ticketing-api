@@ -70,7 +70,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Film"
+                            "$ref": "#/definitions/models.FilmRequest"
                         }
                     }
                 ],
@@ -208,7 +208,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Film"
+                            "$ref": "#/definitions/models.FilmRequest"
                         }
                     }
                 ],
@@ -217,6 +217,65 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Film"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/film/{id}/poster": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengupload file poster untuk film tertentu (khusus admin)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Film"
+                ],
+                "summary": "Upload Poster Film",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "File Gambar",
+                        "name": "poster",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "400": {
@@ -566,17 +625,51 @@ const docTemplate = `{
         "models.Film": {
             "type": "object",
             "properties": {
+                "age_rating": {
+                    "type": "string"
+                },
                 "duration": {
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "rating": {
+                "poster_url": {
+                    "type": "string"
+                },
+                "release_year": {
+                    "type": "integer"
+                },
+                "synopsis": {
                     "type": "string"
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "models.FilmRequest": {
+            "type": "object",
+            "properties": {
+                "age_rating": {
+                    "type": "string",
+                    "example": "16+"
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 114
+                },
+                "release_year": {
+                    "type": "integer",
+                    "example": 2026
+                },
+                "synopsis": {
+                    "type": "string",
+                    "example": "Ghostface is back in town..."
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Scream 7"
                 }
             }
         },

@@ -18,13 +18,37 @@ definitions:
     type: object
   models.Film:
     properties:
+      age_rating:
+        type: string
       duration:
         type: integer
       id:
         type: integer
-      rating:
+      poster_url:
+        type: string
+      release_year:
+        type: integer
+      synopsis:
         type: string
       title:
+        type: string
+    type: object
+  models.FilmRequest:
+    properties:
+      age_rating:
+        example: 16+
+        type: string
+      duration:
+        example: 114
+        type: integer
+      release_year:
+        example: 2026
+        type: integer
+      synopsis:
+        example: Ghostface is back in town...
+        type: string
+      title:
+        example: Scream 7
         type: string
     type: object
   models.LoginRequest:
@@ -95,7 +119,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.Film'
+          $ref: '#/definitions/models.FilmRequest'
       produces:
       - application/json
       responses:
@@ -184,7 +208,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.Film'
+          $ref: '#/definitions/models.FilmRequest'
       produces:
       - application/json
       responses:
@@ -203,6 +227,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Update film
+      tags:
+      - Film
+  /film/{id}/poster:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengupload file poster untuk film tertentu (khusus admin)
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File Gambar
+        in: formData
+        name: poster
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload Poster Film
       tags:
       - Film
   /login:
