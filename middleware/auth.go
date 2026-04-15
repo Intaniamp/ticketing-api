@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -8,7 +9,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("your-secret-key") // ganti rahasia sesuai env variable
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "your-secret-key" // fallback jika env var tidak ditemukan
+	}
+	return []byte(secret)
+}
 
 // Fungsi untuk generate token
 func GenerateJWT(userID int, role string) (string, error) {
@@ -17,7 +24,7 @@ func GenerateJWT(userID int, role string) (string, error) {
 		"role":    role,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(), // 1 hari
 	})
-	return token.SignedString(jwtSecret)
+	return token.SignedString(getJWTSecret())
 }
 
 // Middleware Auth
@@ -29,7 +36,7 @@ func JWTProtected(c *fiber.Ctx) error {
 
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return getJWTSecret(), nil
 	})
 
 	if err != nil || !token.Valid {

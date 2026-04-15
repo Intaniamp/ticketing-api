@@ -38,6 +38,9 @@ func Login(c *fiber.Ctx) error {
 	if err == sql.ErrNoRows {
 		return c.Status(401).JSON(fiber.Map{"message": "User not found"})
 	}
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Database error: " + err.Error()})
+	}
 
 	// contoh: tanpa hashing dulu (idealnya bcrypt)
 	if user.Password != req.Password {
