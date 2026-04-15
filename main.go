@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 	swagger "github.com/swaggo/fiber-swagger"
 )
 
@@ -23,6 +24,11 @@ import (
 // @name Authorization
 // @description Masukkan token dengan format: Bearer <spasi> token-anda
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Error loading .env file")
+	}
 	// --- 1. Konfigurasi Swagger ---
 	docs.SwaggerInfo.Title = "Ticketing API Cinema"
 	docs.SwaggerInfo.Description = "API manajemen tiket bioskop - Project Multiplatform"
