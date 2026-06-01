@@ -18,7 +18,7 @@ func getJWTSecret() []byte {
 }
 
 // Fungsi untuk generate token
-func GenerateJWT(userID int, role string) (string, error) {
+func GenerateJWT(userID string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,

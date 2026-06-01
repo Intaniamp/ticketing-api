@@ -7,6 +7,7 @@ import (
 	"ticketing-api/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // Login godoc
@@ -76,10 +77,12 @@ func Register(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	// 1. (Opsional) Cek apakah email sudah terdaftar
-	// 2. Insert ke database (Default role: user)
-	query := "INSERT INTO user (name, email, password, role) VALUES (?, ?, ?, ?)"
-	_, err := db.Exec(query, req.Name, req.Email, req.Password, "user")
+	// 1. Generate UUID baru
+	newID := uuid.New().String()
+
+	// 2. Insert ke database (Tambahkan kolom id dan value newID)
+	query := "INSERT INTO user (id, name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)"
+	_, err := db.Exec(query, newID, req.Name, req.Email, req.Phone, req.Password, "user")
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "Gagal mendaftarkan user: " + err.Error()})
