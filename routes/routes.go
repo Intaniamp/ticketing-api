@@ -16,6 +16,9 @@ func SetupRoutes(app *fiber.App) {
 	// --- USER ---
 	UserRoutes(api)
 
-	// --- FILM ROUTES ---
+	// --- FILM ---
 	FilmRoutes(api)
+
+	// --- GENRE ---
+	GenreRoutes(api)
 }
