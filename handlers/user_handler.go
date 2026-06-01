@@ -11,15 +11,17 @@ import (
 )
 
 type userResponse struct {
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+	Phone string `json:"phone"`
 	Role  string `json:"role"`
 }
 
 type updateUserRequest struct {
 	Name  *string `json:"name"`
 	Email *string `json:"email"`
+	Phone *string `json:"phone"`
 	Role  *string `json:"role"`
 }
 
@@ -37,7 +39,7 @@ func GetAllUsers(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, name, email, role FROM user")
+	rows, err := db.Query("SELECT id, name, email, phone, role FROM user")
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -66,7 +68,7 @@ func GetAllUsers(c *fiber.Ctx) error {
 //	@Tags			User
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			id	path		int	true	"User ID"
+//	@Param			id	path		string	true	"User ID"
 //	@Success		200	{object}	userResponse
 //	@Failure		404	{object}	models.ErrorResponse
 //	@Failure		500	{object}	models.ErrorResponse
@@ -78,10 +80,11 @@ func GetUserByID(c *fiber.Ctx) error {
 	defer db.Close()
 
 	var u userResponse
-	err := db.QueryRow("SELECT id, name, email, role FROM user WHERE id = ?", id).Scan(
+	err := db.QueryRow("SELECT id, name, email, phone, role FROM user WHERE id = ?", id).Scan(
 		&u.ID,
 		&u.Name,
 		&u.Email,
+		&u.Phone,
 		&u.Role,
 	)
 	if err != nil {
@@ -102,7 +105,7 @@ func GetUserByID(c *fiber.Ctx) error {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		int			true	"User ID"
+//	@Param			id		path		string		true	"User ID"
 //	@Param			request	body		models.User	true	"Data user"
 //	@Success		200		{object}	userResponse
 //	@Failure		400		{object}	models.ErrorResponse
@@ -166,10 +169,11 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	var updated userResponse
-	err = db.QueryRow("SELECT id, name, email, role FROM user WHERE id = ?", id).Scan(
+	err = db.QueryRow("SELECT id, name, email, phone, role FROM user WHERE id = ?", id).Scan(
 		&updated.ID,
 		&updated.Name,
 		&updated.Email,
+		&updated.Phone,
 		&updated.Role,
 	)
 	if err != nil {
@@ -188,7 +192,7 @@ func UpdateUser(c *fiber.Ctx) error {
 //	@Description	Menghapus user berdasarkan ID
 //	@Tags			User
 //	@Security		BearerAuth
-//	@Param			id	path		int	true	"User ID"
+//	@Param			id	path		string	true	"User ID"
 //	@Success		204	{string}	string
 //	@Failure		404	{object}	models.ErrorResponse
 //	@Failure		500	{object}	models.ErrorResponse
