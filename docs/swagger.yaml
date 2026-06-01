@@ -5,8 +5,10 @@ definitions:
       email:
         type: string
       id:
-        type: integer
+        type: string
       name:
+        type: string
+      phone:
         type: string
       role:
         type: string
@@ -22,6 +24,10 @@ definitions:
         type: string
       duration:
         type: integer
+      genres:
+        items:
+          $ref: '#/definitions/models.Genre'
+        type: array
       id:
         type: integer
       poster_url:
@@ -41,6 +47,13 @@ definitions:
       duration:
         example: 114
         type: integer
+      genre_ids:
+        example:
+        - 1
+        - 3
+        items:
+          type: integer
+        type: array
       release_year:
         example: 2026
         type: integer
@@ -49,6 +62,21 @@ definitions:
         type: string
       title:
         example: Scream 7
+        type: string
+    type: object
+  models.Genre:
+    properties:
+      genre_name:
+        example: Action
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+  models.GenreRequest:
+    properties:
+      genre_name:
+        example: Action
         type: string
     type: object
   models.LoginRequest:
@@ -66,16 +94,20 @@ definitions:
         type: string
       password:
         type: string
+      phone:
+        type: string
     type: object
   models.User:
     properties:
       email:
         type: string
       id:
-        type: integer
+        type: string
       name:
         type: string
       password:
+        type: string
+      phone:
         type: string
       role:
         description: 'enum: "user" atau "admin"'
@@ -92,7 +124,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan seluruh daftar film dari database
+      description: Mengembalikan seluruh daftar film beserta genrenya
       produces:
       - application/json
       responses:
@@ -112,7 +144,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Menambahkan data film baru (khusus admin)
+      description: Menambahkan data film baru beserta genrenya (khusus admin)
       parameters:
       - description: Data film
         in: body
@@ -168,7 +200,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan detail satu film berdasarkan parameter ID
+      description: Mengembalikan detail satu film beserta genrenya
       parameters:
       - description: Film ID
         in: path
@@ -196,7 +228,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Memperbarui data film berdasarkan ID (khusus admin)
+      description: Memperbarui data film dan relasi genrenya (khusus admin)
       parameters:
       - description: Film ID
         in: path
@@ -267,6 +299,145 @@ paths:
       summary: Upload Poster Film
       tags:
       - Film
+  /genre:
+    get:
+      description: Mengembalikan daftar seluruh genre film
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Genre'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua genre
+      tags:
+      - Genre
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data genre baru ke dalam sistem
+      parameters:
+      - description: Data Genre
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GenreRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Genre'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah genre baru
+      tags:
+      - Genre
+  /genre/{id}:
+    delete:
+      description: Menghapus genre berdasarkan ID
+      parameters:
+      - description: Genre ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus genre
+      tags:
+      - Genre
+    get:
+      description: Mengembalikan detail satu genre
+      parameters:
+      - description: Genre ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Genre'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil genre berdasarkan ID
+      tags:
+      - Genre
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah nama genre berdasarkan ID
+      parameters:
+      - description: Genre ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data Genre Baru
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GenreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Genre'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update genre
+      tags:
+      - Genre
   /login:
     post:
       consumes:
@@ -375,7 +546,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       responses:
         "204":
           description: No Content
@@ -401,7 +572,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -431,7 +602,7 @@ paths:
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Data user
         in: body
         name: request
