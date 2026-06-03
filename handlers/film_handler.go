@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"ticketing-api/config"
 	"ticketing-api/models"
@@ -289,48 +290,54 @@ func DeleteFilm(c *fiber.Ctx) error {
 //	@Failure		500		{object}	models.ErrorResponse
 //	@Router			/film/{id}/poster [post]
 func UploadPoster(c *fiber.Ctx) error {
-	id := c.Params("id")
+    id := c.Params("id")
 
-	file, err := c.FormFile("poster")
-	if err != nil {
-		return c.Status(400).JSON(models.ErrorResponse{Message: "File poster tidak ditemukan"})
-	}
+    file, err := c.FormFile("poster")
+    if err != nil {
+        return c.Status(400).JSON(models.ErrorResponse{Message: "File poster tidak ditemukan"})
+    }
 
-	var maxFileSize int64 = 2 * 1024 * 1024 // 2MB
-	if file.Size > maxFileSize {
-		return c.Status(400).JSON(models.ErrorResponse{Message: "Ukuran file terlalu besar! Maksimal 2MB"})
-	}
+    var maxFileSize int64 = 2 * 1024 * 1024 // 2MB
+    if file.Size > maxFileSize {
+        return c.Status(400).JSON(models.ErrorResponse{Message: "Ukuran file terlalu besar! Maksimal 2MB"})
+    }
 
-	extension := filepath.Ext(file.Filename)
-	allowedExtensions := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".webp": true,
-	}
+    extension := filepath.Ext(file.Filename)
+    allowedExtensions := map[string]bool{
+        ".jpg":  true,
+        ".jpeg": true,
+        ".png":  true,
+        ".webp": true,
+    }
 
-	if !allowedExtensions[extension] {
-		return c.Status(400).JSON(models.ErrorResponse{Message: "Format file tidak didukung! Gunakan jpg, jpeg, atau png"})
-	}
+    if !allowedExtensions[extension] {
+        return c.Status(400).JSON(models.ErrorResponse{Message: "Format file tidak didukung! Gunakan jpg, jpeg, atau png"})
+    }
 
-	newFileName := fmt.Sprintf("%d%s", time.Now().Unix(), extension)
-	savePath := filepath.Join("public/uploads/posters", newFileName)
-	dbPath := fmt.Sprintf("uploads/posters/%s", newFileName)
+    newFileName := fmt.Sprintf("%d%s", time.Now().Unix(), extension)
+    targetDir := "public/uploads/posters"
+    savePath := filepath.Join(targetDir, newFileName)
+    dbPath := fmt.Sprintf("uploads/posters/%s", newFileName)
 
-	if err := c.SaveFile(file, savePath); err != nil {
-		return c.Status(500).JSON(models.ErrorResponse{Message: "Gagal menyimpan file di server"})
-	}
+    if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
+        return c.Status(500).JSON(models.ErrorResponse{Message: "Gagal membuat folder penyimpanan di server"})
+    }
 
-	db := config.ConnectDB()
-	defer db.Close()
+    // 3. Simpan file fisik ke dalam folder
+    if err := c.SaveFile(file, savePath); err != nil {
+        return c.Status(500).JSON(models.ErrorResponse{Message: "Gagal menyimpan file di server"})
+    }
 
-	_, err = db.Exec("UPDATE film SET poster = ? WHERE id = ?", dbPath, id)
-	if err != nil {
-		return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
-	}
+    db := config.ConnectDB()
+    defer db.Close()
 
-	return c.Status(200).JSON(fiber.Map{
-		"message":    "Poster berhasil diupload",
-		"poster_url": dbPath,
-	})
+    _, err = db.Exec("UPDATE film SET poster = ? WHERE id = ?", dbPath, id)
+    if err != nil {
+        return c.Status(500).JSON(models.ErrorResponse{Message: err.Error()})
+    }
+
+    return c.Status(200).JSON(fiber.Map{
+        "message":    "Poster berhasil diupload",
+        "poster_url": dbPath,
+    })
 }
