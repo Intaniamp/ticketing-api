@@ -13,6 +13,48 @@ definitions:
       role:
         type: string
     type: object
+  models.Cinema:
+    properties:
+      address:
+        example: Beachwalk Shopping Center Lt. 2, Jl. Pantai Kuta
+        type: string
+      cinema_name:
+        example: Beachwalk XXI
+        type: string
+      city_id:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+    type: object
+  models.CinemaRequest:
+    properties:
+      address:
+        example: Beachwalk Shopping Center Lt. 2, Jl. Pantai Kuta
+        type: string
+      cinema_name:
+        example: Beachwalk XXI
+        type: string
+      city_id:
+        example: 1
+        type: integer
+    type: object
+  models.City:
+    properties:
+      city_name:
+        example: Jakarta
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+  models.CityRequest:
+    properties:
+      city_name:
+        example: Jakarta
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       message:
@@ -97,6 +139,66 @@ definitions:
       phone:
         type: string
     type: object
+  models.Schedule:
+    properties:
+      date:
+        example: "2026-06-03"
+        type: string
+      film_id:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      price:
+        example: 40000
+        type: number
+      studio_id:
+        example: 32
+        type: integer
+      time:
+        example: "13:00:00"
+        type: string
+    type: object
+  models.ScheduleRequest:
+    properties:
+      date:
+        example: "2026-06-03"
+        type: string
+      film_id:
+        example: 1
+        type: integer
+      price:
+        example: 40000
+        type: number
+      studio_id:
+        example: 32
+        type: integer
+      time:
+        example: "13:00:00"
+        type: string
+    type: object
+  models.Studio:
+    properties:
+      cinema_id:
+        example: 7
+        type: integer
+      id:
+        example: 32
+        type: integer
+      studio_name:
+        example: Regular
+        type: string
+    type: object
+  models.StudioRequest:
+    properties:
+      cinema_id:
+        example: 7
+        type: integer
+      studio_name:
+        example: Regular
+        type: string
+    type: object
   models.User:
     properties:
       email:
@@ -120,6 +222,296 @@ info:
   title: Ticketing API
   version: "1.0"
 paths:
+  /cinema:
+    get:
+      description: Mengembalikan daftar seluruh bioskop
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cinema'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua bioskop
+      tags:
+      - Cinema
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data bioskop baru ke dalam sistem (khusus admin)
+      parameters:
+      - description: Data Bioskop
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CinemaRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Cinema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah bioskop baru
+      tags:
+      - Cinema
+  /cinema/{id}:
+    delete:
+      description: Menghapus data bioskop berdasarkan ID (khusus admin)
+      parameters:
+      - description: Cinema ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus bioskop
+      tags:
+      - Cinema
+    get:
+      description: Mengembalikan detail satu bioskop
+      parameters:
+      - description: Cinema ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cinema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil bioskop berdasarkan ID
+      tags:
+      - Cinema
+    patch:
+      consumes:
+      - application/json
+      description: Memperbarui data bioskop berdasarkan ID (khusus admin)
+      parameters:
+      - description: Cinema ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data Bioskop
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CinemaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cinema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update bioskop
+      tags:
+      - Cinema
+  /city:
+    get:
+      description: Mengembalikan daftar seluruh kota
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.City'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua kota
+      tags:
+      - City
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data kota baru ke dalam sistem (khusus admin)
+      parameters:
+      - description: Data Kota
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.City'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah kota baru
+      tags:
+      - City
+  /city/{id}:
+    delete:
+      description: Menghapus data kota berdasarkan ID (khusus admin)
+      parameters:
+      - description: City ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus kota
+      tags:
+      - City
+    get:
+      description: Mengembalikan detail satu kota
+      parameters:
+      - description: City ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.City'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil kota berdasarkan ID
+      tags:
+      - City
+    patch:
+      consumes:
+      - application/json
+      description: Memperbarui data kota berdasarkan ID (khusus admin)
+      parameters:
+      - description: City ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data Kota
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.City'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update kota
+      tags:
+      - City
   /film:
     get:
       consumes:
@@ -517,6 +909,296 @@ paths:
       summary: User Register
       tags:
       - Auth
+  /schedule:
+    get:
+      description: Mengembalikan daftar seluruh jadwal tayang film
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Schedule'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua jadwal tayang
+      tags:
+      - Schedule
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data jadwal tayang baru (khusus admin)
+      parameters:
+      - description: Data Jadwal
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Schedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat jadwal baru
+      tags:
+      - Schedule
+  /schedule/{id}:
+    delete:
+      description: Menghapus data jadwal tayang berdasarkan ID (khusus admin)
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus jadwal
+      tags:
+      - Schedule
+    get:
+      description: Mengembalikan detail satu jadwal tayang
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Schedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil jadwal berdasarkan ID
+      tags:
+      - Schedule
+    patch:
+      consumes:
+      - application/json
+      description: Memperbarui data jadwal tayang berdasarkan ID (khusus admin)
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data Jadwal
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Schedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update jadwal
+      tags:
+      - Schedule
+  /studio:
+    get:
+      description: Mengembalikan daftar seluruh studio di semua bioskop
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Studio'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil semua studio
+      tags:
+      - Studio
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data studio baru ke dalam sistem (khusus admin)
+      parameters:
+      - description: Data Studio
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StudioRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Studio'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah studio baru
+      tags:
+      - Studio
+  /studio/{id}:
+    delete:
+      description: Menghapus data studio berdasarkan ID (khusus admin)
+      parameters:
+      - description: Studio ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus studio
+      tags:
+      - Studio
+    get:
+      description: Mengembalikan detail satu studio
+      parameters:
+      - description: Studio ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Studio'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil studio berdasarkan ID
+      tags:
+      - Studio
+    patch:
+      consumes:
+      - application/json
+      description: Memperbarui data studio berdasarkan ID (khusus admin)
+      parameters:
+      - description: Studio ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data Studio
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StudioRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Studio'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update studio
+      tags:
+      - Studio
   /user:
     get:
       description: Mengembalikan seluruh daftar user tanpa field password
