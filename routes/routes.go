@@ -21,4 +21,16 @@ func SetupRoutes(app *fiber.App) {
 
 	// --- GENRE ---
 	GenreRoutes(api)
+
+	// --- CITY ---
+	CityRoutes(api)
+
+	// --- CINEMA ---
+	CinemaRoutes(api)
+
+	// --- STUDIO ---
+	StudioRoutes(api)
+
+	// --- SCHEDULE ---
+	ScheduleRoutes(api)
 }
