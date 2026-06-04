@@ -9,6 +9,175 @@
     "host": "localhost:3000",
     "basePath": "/api/v1",
     "paths": {
+        "/booking": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan seluruh daftar booking dari semua user di dalam sistem",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Ambil semua pesanan (Khusus Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Booking"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memesan kursi. Status awal otomatis 'pending'. Menerapkan penguncian kursi (Seat Locking).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Buat pesanan tiket (Booking)",
+                "parameters": [
+                    {
+                        "description": "Data Booking",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Booking"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking/my-history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar pesanan ringkas milik user yang sedang login",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Ambil riwayat pesanan user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Booking"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/booking/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan detail lengkap satu tiket (Film, Bioskop, Jadwal, Kursi)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Booking"
+                ],
+                "summary": "Ambil detail E-Ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BookingDetailResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/cinema": {
             "get": {
                 "description": "Mengembalikan daftar seluruh bioskop",
@@ -1017,6 +1186,141 @@
                 }
             }
         },
+        "/payment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan seluruh riwayat pembayaran dari semua user di dalam sistem",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Ambil semua data pembayaran (Khusus Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Payment"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Melakukan simulasi pembayaran. Akan mengubah status booking menjadi 'success'.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Proses Pembayaran Tiket",
+                "parameters": [
+                    {
+                        "description": "Data Pembayaran",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Payment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/my-history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar semua pembayaran sukses/gagal milik user yang sedang login",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Ambil riwayat pembayaran user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Payment"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "description": "Mendaftarkan user baru ke sistem",
@@ -1376,6 +1680,42 @@
                             "items": {
                                 "$ref": "#/definitions/models.Seat"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus seluruh kursi berdasarkan Studio ID (khusus admin)",
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Sapu bersih kursi di satu studio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Studio ID",
+                        "name": "studio_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {
@@ -1860,6 +2200,114 @@
                 }
             }
         },
+        "models.Booking": {
+            "type": "object",
+            "properties": {
+                "booking_date": {
+                    "type": "string",
+                    "example": "2026-06-05 14:30:00"
+                },
+                "expired_at": {
+                    "type": "string",
+                    "example": "2026-06-05 14:35:00"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "98231a54-f58c-48a0-9c2b..."
+                },
+                "schedule_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "example": "pending"
+                },
+                "total_price": {
+                    "type": "number",
+                    "example": 60000
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "user-uuid-456"
+                }
+            }
+        },
+        "models.BookingDetailResponse": {
+            "type": "object",
+            "properties": {
+                "cinema_name": {
+                    "type": "string",
+                    "example": "XX1 Living World"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2026-04-19"
+                },
+                "expired_at": {
+                    "type": "string",
+                    "example": "2026-06-05 14:35:00"
+                },
+                "film_title": {
+                    "type": "string",
+                    "example": "Scream 7"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "98231a54-f58c-48a0-9c2b..."
+                },
+                "order_id": {
+                    "type": "string",
+                    "example": "#CM-98231A54"
+                },
+                "poster_url": {
+                    "type": "string",
+                    "example": "uploads/posters/poster.jpg"
+                },
+                "seats": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "F7",
+                        "F8"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "example": "success"
+                },
+                "time": {
+                    "type": "string",
+                    "example": "17:30"
+                },
+                "total_price": {
+                    "type": "number",
+                    "example": 60000
+                }
+            }
+        },
+        "models.BookingRequest": {
+            "type": "object",
+            "properties": {
+                "schedule_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "seat_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        15,
+                        16,
+                        17
+                    ]
+                }
+            }
+        },
         "models.BulkSeatRequest": {
             "type": "object",
             "properties": {
@@ -2048,6 +2496,48 @@
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "example": 60000
+                },
+                "booking_id": {
+                    "type": "string",
+                    "example": "booking-uuid-456"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "pay-uuid-123"
+                },
+                "payment_date": {
+                    "type": "string",
+                    "example": "2026-06-05 14:30:00"
+                },
+                "payment_method": {
+                    "type": "string",
+                    "example": "OVO"
+                },
+                "payment_status": {
+                    "type": "string",
+                    "example": "success"
+                }
+            }
+        },
+        "models.PaymentRequest": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "string",
+                    "example": "booking-uuid-456"
+                },
+                "payment_method": {
+                    "type": "string",
+                    "example": "Gopay"
                 }
             }
         },

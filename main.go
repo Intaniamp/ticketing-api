@@ -5,6 +5,7 @@ import (
 
 	"ticketing-api/docs"
 	"ticketing-api/routes"
+	"ticketing-api/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -49,6 +50,8 @@ func main() {
 	// --- 4. Route Swagger ---
 	// Akses di: http://localhost:3000/swagger/index.html
 	app.Get("/swagger/*", swagger.WrapHandler)
+
+	utils.StartTicketSweeper()
 
 	// --- 5. Setup API Routes ---
 	routes.SetupRoutes(app)
