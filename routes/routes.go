@@ -36,4 +36,10 @@ func SetupRoutes(app *fiber.App) {
 
 	// --- SEAT ---
 	SeatRoutes(api)
+
+	// --- BOOKING ---
+	BookingRoutes(api)
+
+	// --- PAYMENT ---
+	PaymentRoutes(api)
 }
