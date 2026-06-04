@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"ticketing-api/handlers"
-	"ticketing-api/middleware"
+	"ticketing-api/internal/handlers"
+	"ticketing-api/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )

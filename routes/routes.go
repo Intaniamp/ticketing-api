@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"ticketing-api/handlers"
+	"ticketing-api/internal/handlers"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -33,4 +33,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// --- SCHEDULE ---
 	ScheduleRoutes(api)
+
+	// --- SEAT ---
+	SeatRoutes(api)
 }
