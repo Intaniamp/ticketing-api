@@ -1297,6 +1297,139 @@
                 }
             }
         },
+        "/seat/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menambahkan banyak kursi ke dalam satu studio dalam satu kali request (khusus admin)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Tambah banyak kursi sekaligus (Bulk)",
+                "parameters": [
+                    {
+                        "description": "Data Kursi Massal",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BulkSeatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/seat/studio/{studio_id}": {
+            "get": {
+                "description": "Mengembalikan daftar seluruh kursi yang ada di dalam studio tertentu",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Ambil kursi berdasarkan Studio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Studio ID",
+                        "name": "studio_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Seat"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/seat/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus kursi berdasarkan ID (khusus admin)",
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Hapus kursi",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Seat ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/studio": {
             "get": {
                 "description": "Mengembalikan daftar seluruh studio di semua bioskop",
@@ -1727,6 +1860,29 @@
                 }
             }
         },
+        "models.BulkSeatRequest": {
+            "type": "object",
+            "properties": {
+                "seat_numbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "A1",
+                        "A2",
+                        "A3",
+                        "B1",
+                        "B2",
+                        "B3"
+                    ]
+                },
+                "studio_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "models.Cinema": {
             "type": "object",
             "properties": {
@@ -1963,6 +2119,23 @@
                 "time": {
                     "type": "string",
                     "example": "13:00:00"
+                }
+            }
+        },
+        "models.Seat": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "seat_number": {
+                    "type": "string",
+                    "example": "A1"
+                },
+                "studio_id": {
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

@@ -13,6 +13,23 @@ definitions:
       role:
         type: string
     type: object
+  models.BulkSeatRequest:
+    properties:
+      seat_numbers:
+        example:
+        - A1
+        - A2
+        - A3
+        - B1
+        - B2
+        - B3
+        items:
+          type: string
+        type: array
+      studio_id:
+        example: 1
+        type: integer
+    type: object
   models.Cinema:
     properties:
       address:
@@ -177,6 +194,18 @@ definitions:
       time:
         example: "13:00:00"
         type: string
+    type: object
+  models.Seat:
+    properties:
+      id:
+        example: 1
+        type: integer
+      seat_number:
+        example: A1
+        type: string
+      studio_id:
+        example: 1
+        type: integer
     type: object
   models.Studio:
     properties:
@@ -1054,6 +1083,92 @@ paths:
       summary: Update jadwal
       tags:
       - Schedule
+  /seat/{id}:
+    delete:
+      description: Menghapus kursi berdasarkan ID (khusus admin)
+      parameters:
+      - description: Seat ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hapus kursi
+      tags:
+      - Seat
+  /seat/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan banyak kursi ke dalam satu studio dalam satu kali request
+        (khusus admin)
+      parameters:
+      - description: Data Kursi Massal
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BulkSeatRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tambah banyak kursi sekaligus (Bulk)
+      tags:
+      - Seat
+  /seat/studio/{studio_id}:
+    get:
+      description: Mengembalikan daftar seluruh kursi yang ada di dalam studio tertentu
+      parameters:
+      - description: Studio ID
+        in: path
+        name: studio_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Seat'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil kursi berdasarkan Studio
+      tags:
+      - Seat
   /studio:
     get:
       description: Mengembalikan daftar seluruh studio di semua bioskop
