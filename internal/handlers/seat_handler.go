@@ -128,3 +128,35 @@ func DeleteSeat(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// DeleteSeatsByStudio godoc
+//
+//	@Summary		Sapu bersih kursi di satu studio
+//	@Description	Menghapus seluruh kursi berdasarkan Studio ID (khusus admin)
+//	@Tags			Seat
+//	@Security		BearerAuth
+//	@Param			studio_id	path		int	true	"Studio ID"
+//	@Success		200			{object}	map[string]interface{}
+//	@Failure		500			{object}	models.ErrorResponse
+//	@Router			/seat/studio/{studio_id} [delete]
+func DeleteSeatsByStudio(c *fiber.Ctx) error {
+	studioID := c.Params("studio_id")
+	db := config.ConnectDB()
+	defer db.Close()
+
+	result, err := db.Exec("DELETE FROM seat WHERE studio_id = ?", studioID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
+	}
+
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(models.ErrorResponse{Message: "Tidak ada kursi yang ditemukan di studio ini"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":       "Seluruh kursi di studio berhasil dihapus",
+		"studio_id":     studioID,
+		"deleted_count": affected,
+	})
+}

@@ -13,6 +13,84 @@ definitions:
       role:
         type: string
     type: object
+  models.Booking:
+    properties:
+      booking_date:
+        example: "2026-06-05 14:30:00"
+        type: string
+      expired_at:
+        example: "2026-06-05 14:35:00"
+        type: string
+      id:
+        example: 98231a54-f58c-48a0-9c2b...
+        type: string
+      schedule_id:
+        example: 1
+        type: integer
+      status:
+        example: pending
+        type: string
+      total_price:
+        example: 60000
+        type: number
+      user_id:
+        example: user-uuid-456
+        type: string
+    type: object
+  models.BookingDetailResponse:
+    properties:
+      cinema_name:
+        example: XX1 Living World
+        type: string
+      date:
+        example: "2026-04-19"
+        type: string
+      expired_at:
+        example: "2026-06-05 14:35:00"
+        type: string
+      film_title:
+        example: Scream 7
+        type: string
+      id:
+        example: 98231a54-f58c-48a0-9c2b...
+        type: string
+      order_id:
+        example: '#CM-98231A54'
+        type: string
+      poster_url:
+        example: uploads/posters/poster.jpg
+        type: string
+      seats:
+        example:
+        - F7
+        - F8
+        items:
+          type: string
+        type: array
+      status:
+        example: success
+        type: string
+      time:
+        example: "17:30"
+        type: string
+      total_price:
+        example: 60000
+        type: number
+    type: object
+  models.BookingRequest:
+    properties:
+      schedule_id:
+        example: 1
+        type: integer
+      seat_ids:
+        example:
+        - 15
+        - 16
+        - 17
+        items:
+          type: integer
+        type: array
+    type: object
   models.BulkSeatRequest:
     properties:
       seat_numbers:
@@ -145,6 +223,36 @@ definitions:
       password:
         type: string
     type: object
+  models.Payment:
+    properties:
+      amount:
+        example: 60000
+        type: number
+      booking_id:
+        example: booking-uuid-456
+        type: string
+      id:
+        example: pay-uuid-123
+        type: string
+      payment_date:
+        example: "2026-06-05 14:30:00"
+        type: string
+      payment_method:
+        example: OVO
+        type: string
+      payment_status:
+        example: success
+        type: string
+    type: object
+  models.PaymentRequest:
+    properties:
+      booking_id:
+        example: booking-uuid-456
+        type: string
+      payment_method:
+        example: Gopay
+        type: string
+    type: object
   models.RegisterRequest:
     properties:
       email:
@@ -251,6 +359,114 @@ info:
   title: Ticketing API
   version: "1.0"
 paths:
+  /booking:
+    get:
+      description: Mengembalikan seluruh daftar booking dari semua user di dalam sistem
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Booking'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil semua pesanan (Khusus Admin)
+      tags:
+      - Booking
+    post:
+      consumes:
+      - application/json
+      description: Memesan kursi. Status awal otomatis 'pending'. Menerapkan penguncian
+        kursi (Seat Locking).
+      parameters:
+      - description: Data Booking
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Booking'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Buat pesanan tiket (Booking)
+      tags:
+      - Booking
+  /booking/{id}:
+    get:
+      description: Mengembalikan detail lengkap satu tiket (Film, Bioskop, Jadwal,
+        Kursi)
+      parameters:
+      - description: Booking ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BookingDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil detail E-Ticket
+      tags:
+      - Booking
+  /booking/my-history:
+    get:
+      description: Mengembalikan daftar pesanan ringkas milik user yang sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Booking'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil riwayat pesanan user
+      tags:
+      - Booking
   /cinema:
     get:
       description: Mengembalikan daftar seluruh bioskop
@@ -902,6 +1118,94 @@ paths:
       summary: User Login
       tags:
       - Auth
+  /payment:
+    get:
+      description: Mengembalikan seluruh riwayat pembayaran dari semua user di dalam
+        sistem
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Payment'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil semua data pembayaran (Khusus Admin)
+      tags:
+      - Payment
+    post:
+      consumes:
+      - application/json
+      description: Melakukan simulasi pembayaran. Akan mengubah status booking menjadi
+        'success'.
+      parameters:
+      - description: Data Pembayaran
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Payment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Proses Pembayaran Tiket
+      tags:
+      - Payment
+  /payment/my-history:
+    get:
+      description: Mengembalikan daftar semua pembayaran sukses/gagal milik user yang
+        sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Payment'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil riwayat pembayaran user
+      tags:
+      - Payment
   /register:
     post:
       consumes:
@@ -1145,6 +1449,29 @@ paths:
       tags:
       - Seat
   /seat/studio/{studio_id}:
+    delete:
+      description: Menghapus seluruh kursi berdasarkan Studio ID (khusus admin)
+      parameters:
+      - description: Studio ID
+        in: path
+        name: studio_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Sapu bersih kursi di satu studio
+      tags:
+      - Seat
     get:
       description: Mengembalikan daftar seluruh kursi yang ada di dalam studio tertentu
       parameters:

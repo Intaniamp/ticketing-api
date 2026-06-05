@@ -16,4 +16,5 @@ func SeatRoutes(api fiber.Router) {
 	// Endpoint Khusus Admin (Wajib login dan role = admin)
 	seat.Post("/bulk", middleware.JWTProtected, middleware.AdminOnly, handlers.BulkCreateSeats)
 	seat.Delete("/:id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteSeat)
+	seat.Delete("/studio/:studio_id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteSeatsByStudio)
 }
