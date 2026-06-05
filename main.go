@@ -13,11 +13,11 @@ import (
 	swagger "github.com/swaggo/fiber-swagger"
 )
 
-// @title			Ticketing API
-// @version		1.0
-// @description	API backend untuk aplikasi pemesanan tiket bioskop
-// @host			localhost:3000
-// @BasePath		/api/v1
+// @title          Ticketing API
+// @version        1.0
+// @description    API backend untuk aplikasi pemesanan tiket bioskop
+// @host           localhost:3000
+// @BasePath       /api/v1
 
 // @securityDefinitions.apikey BearerAuth
 // @in header
@@ -29,6 +29,7 @@ func main() {
 	if err != nil {
 		log.Println("Warning: Error loading .env file")
 	}
+	
 	// --- 1. Konfigurasi Swagger ---
 	docs.SwaggerInfo.Title = "Ticketing API Cinema"
 	docs.SwaggerInfo.Description = "API manajemen tiket bioskop - Project Multiplatform"
@@ -42,15 +43,24 @@ func main() {
 		AppName: "Ticketing API v1.0",
 	})
 
-	// --- 3. Middleware ---
+	// 🟢 3. MIDDLEWARE HARUS DI SINI (Paling Atas)
+	// Agar semua rute di bawahnya (termasuk static file) kebagian izin CORS
 	app.Use(logger.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH",
+	}))
 
-	// --- 4. Route Swagger ---
+	// 🟢 4. SETELAH CORS, BARU BUKA FOLDER STATIC
+	// Akses gambar poster di: http://localhost:3000/uploads/namafile.jpg
+	app.Static("/", "./public")
+
+	// --- 5. Route Swagger ---
 	// Akses di: http://localhost:3000/swagger/index.html
 	app.Get("/swagger/*", swagger.WrapHandler)
 
-	// --- 5. Setup API Routes ---
+	// --- 6. Setup API Routes ---
 	routes.SetupRoutes(app)
 
 	// Redirect kalau buka localhost:3000 langsung ke Swagger
@@ -58,7 +68,7 @@ func main() {
 		return c.Redirect("/swagger/index.html")
 	})
 
-	// --- 6. Jalankan Server ---
+	// --- 7. Jalankan Server ---
 	log.Println("🚀 Server jalan di http://localhost:3000")
 	log.Println("📖 Swagger UI: http://localhost:3000/swagger/index.html")
 	log.Fatal(app.Listen(":3000"))
