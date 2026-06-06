@@ -22,7 +22,7 @@ func GetAllCinemas(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	rows, err := db.Query("SELECT id, cinema_name, city_id, address FROM cinema")
+	rows, err := db.Query("SELECT id, cinema_name, address FROM cinema")
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -31,7 +31,7 @@ func GetAllCinemas(c *fiber.Ctx) error {
 	var cinemas []models.Cinema
 	for rows.Next() {
 		var cinema models.Cinema
-		if err := rows.Scan(&cinema.ID, &cinema.CinemaName, &cinema.CityID, &cinema.Address); err != nil {
+		if err := rows.Scan(&cinema.ID, &cinema.CinemaName, &cinema.Address); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 		}
 		cinemas = append(cinemas, cinema)
@@ -57,7 +57,7 @@ func GetCinemaByID(c *fiber.Ctx) error {
 	defer db.Close()
 
 	var cinema models.Cinema
-	err := db.QueryRow("SELECT id, cinema_name, city_id, address FROM cinema WHERE id = ?", id).Scan(&cinema.ID, &cinema.CinemaName, &cinema.CityID, &cinema.Address)
+	err := db.QueryRow("SELECT id, cinema_name, address FROM cinema WHERE id = ?", id).Scan(&cinema.ID, &cinema.CinemaName, &cinema.Address)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(models.ErrorResponse{Message: "Bioskop tidak ditemukan"})
@@ -90,7 +90,7 @@ func CreateCinema(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	result, err := db.Exec("INSERT INTO cinema (cinema_name, city_id, address) VALUES (?, ?, ?)", req.CinemaName, req.CityID, req.Address)
+	result, err := db.Exec("INSERT INTO cinema (cinema_name, address) VALUES (?, ?)", req.CinemaName, req.Address)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -100,7 +100,6 @@ func CreateCinema(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(models.Cinema{
 		ID:         int(lastInsertID),
 		CinemaName: req.CinemaName,
-		CityID:     req.CityID,
 		Address:    req.Address,
 	})
 }
@@ -130,7 +129,7 @@ func UpdateCinema(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	result, err := db.Exec("UPDATE cinema SET cinema_name = ?, city_id = ?, address = ? WHERE id = ?", req.CinemaName, req.CityID, req.Address, id)
+	result, err := db.Exec("UPDATE cinema SET cinema_name = ?, address = ? WHERE id = ?", req.CinemaName, req.Address, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
@@ -144,7 +143,6 @@ func UpdateCinema(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(models.Cinema{
 		ID:         cinemaID,
 		CinemaName: req.CinemaName,
-		CityID:     req.CityID,
 		Address:    req.Address,
 	})
 }
