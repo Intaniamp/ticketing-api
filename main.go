@@ -45,7 +45,7 @@ func main() {
 	})
 
 	// Berikan izin agar semua file di dalam folder "./public/uploads" bisa diakses langsung via URL "/uploads"
-	app.Static("/uploads", "./public/uploads")
+	
 
 	// 🟢 3. MIDDLEWARE HARUS DI SINI (Paling Atas)
 	// Agar semua rute di bawahnya (termasuk static file) kebagian izin CORS
@@ -58,6 +58,7 @@ func main() {
 
 	// 🟢 4. SETELAH CORS, BARU BUKA FOLDER STATIC
 	// Akses gambar poster di: http://localhost:3000/uploads/namafile.jpg
+	app.Static("/uploads", "./public/uploads")
 	app.Static("/", "./public")
 
 	// --- 5. Route Swagger ---
