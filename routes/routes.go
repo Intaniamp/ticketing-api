@@ -42,4 +42,7 @@ func SetupRoutes(app *fiber.App) {
 
 	// --- PAYMENT ---
 	PaymentRoutes(api)
+
+	// --- REFUND ---
+	RefundRoutes(api)
 }

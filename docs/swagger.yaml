@@ -253,6 +253,30 @@ definitions:
         example: Gopay
         type: string
     type: object
+  models.Refund:
+    properties:
+      booking_id:
+        example: booking-uuid-456
+        type: string
+      id:
+        example: ref-uuid-123
+        type: string
+      refund_amount:
+        example: 60000
+        type: number
+      refund_date:
+        example: "2026-06-05 15:00:00"
+        type: string
+    type: object
+  models.RefundRequest:
+    properties:
+      booking_id:
+        example: booking-uuid-456
+        type: string
+      reason:
+        example: Salah pilih jam tayang
+        type: string
+    type: object
   models.RegisterRequest:
     properties:
       email:
@@ -314,6 +338,19 @@ definitions:
       studio_id:
         example: 1
         type: integer
+    type: object
+  models.SeatStatus:
+    properties:
+      id:
+        example: 1
+        type: integer
+      seat_number:
+        example: F7
+        type: string
+      status:
+        description: 'isinya: ''available'' atau ''booked'''
+        example: available
+        type: string
     type: object
   models.Studio:
     properties:
@@ -1206,6 +1243,51 @@ paths:
       summary: Ambil riwayat pembayaran user
       tags:
       - Payment
+  /refund:
+    post:
+      consumes:
+      - application/json
+      description: Membatalkan tiket, mencatat refund, dan mengosongkan kembali kursi
+        yang sudah dipesan.
+      parameters:
+      - description: Data Refund
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefundRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Refund'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Proses Pembatalan dan Refund Tiket
+      tags:
+      - Refund
   /register:
     post:
       consumes:
@@ -1387,6 +1469,32 @@ paths:
       summary: Update jadwal
       tags:
       - Schedule
+  /schedule/{schedule_id}/seats:
+    get:
+      description: Mengembalikan daftar semua kursi beserta statusnya (available/booked)
+        untuk jadwal tayang tertentu. Ini yang dipakai User!
+      parameters:
+      - description: ID Jadwal Tayang
+        in: path
+        name: schedule_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SeatStatus'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Lihat Denah Kursi Live
+      tags:
+      - Seat
   /seat/{id}:
     delete:
       description: Menghapus kursi berdasarkan ID (khusus admin)

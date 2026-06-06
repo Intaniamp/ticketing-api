@@ -1321,6 +1321,75 @@
                 }
             }
         },
+        "/refund": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Membatalkan tiket, mencatat refund, dan mengosongkan kembali kursi yang sudah dipesan.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Refund"
+                ],
+                "summary": "Proses Pembatalan dan Refund Tiket",
+                "parameters": [
+                    {
+                        "description": "Data Refund",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RefundRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Refund"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "description": "Mendaftarkan user baru ke sistem",
@@ -1590,6 +1659,44 @@
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schedule/{schedule_id}/seats": {
+            "get": {
+                "description": "Mengembalikan daftar semua kursi beserta statusnya (available/booked) untuk jadwal tayang tertentu. Ini yang dipakai User!",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Lihat Denah Kursi Live",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Jadwal Tayang",
+                        "name": "schedule_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SeatStatus"
+                            }
                         }
                     },
                     "500": {
@@ -2541,6 +2648,40 @@
                 }
             }
         },
+        "models.Refund": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "string",
+                    "example": "booking-uuid-456"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "ref-uuid-123"
+                },
+                "refund_amount": {
+                    "type": "number",
+                    "example": 60000
+                },
+                "refund_date": {
+                    "type": "string",
+                    "example": "2026-06-05 15:00:00"
+                }
+            }
+        },
+        "models.RefundRequest": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "string",
+                    "example": "booking-uuid-456"
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Salah pilih jam tayang"
+                }
+            }
+        },
         "models.RegisterRequest": {
             "type": "object",
             "properties": {
@@ -2626,6 +2767,24 @@
                 "studio_id": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "models.SeatStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "seat_number": {
+                    "type": "string",
+                    "example": "F7"
+                },
+                "status": {
+                    "description": "isinya: 'available' atau 'booked'",
+                    "type": "string",
+                    "example": "available"
                 }
             }
         },
