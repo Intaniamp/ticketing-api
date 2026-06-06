@@ -1451,44 +1451,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/schedule/{schedule_id}/seats": {
-            "get": {
-                "description": "Mengembalikan daftar semua kursi beserta statusnya (available/booked) untuk jadwal tayang tertentu. Ini yang dipakai User!",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Seat"
-                ],
-                "summary": "Lihat Denah Kursi Live",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID Jadwal Tayang",
-                        "name": "schedule_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.SeatStatus"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/seat/bulk": {
             "post": {
                 "security": [
@@ -1530,6 +1492,44 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/seat/schedule/{schedule_id}": {
+            "get": {
+                "description": "Mengembalikan daftar semua kursi beserta statusnya (available/booked) untuk jadwal tayang tertentu. Ini yang dipakai User!",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Seat"
+                ],
+                "summary": "Lihat Denah Kursi Live",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Jadwal Tayang",
+                        "name": "schedule_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SeatStatus"
+                            }
                         }
                     },
                     "500": {
@@ -2230,10 +2230,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Beachwalk XXI"
                 },
-                "city_id": {
-                    "type": "integer",
-                    "example": 1
-                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -2250,10 +2246,6 @@ const docTemplate = `{
                 "cinema_name": {
                     "type": "string",
                     "example": "Beachwalk XXI"
-                },
-                "city_id": {
-                    "type": "integer",
-                    "example": 1
                 }
             }
         },
