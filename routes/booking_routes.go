@@ -14,4 +14,5 @@ func BookingRoutes(api fiber.Router) {
 	booking.Post("/", middleware.JWTProtected, handlers.CreateBooking)
 	booking.Get("/my-history", middleware.JWTProtected, handlers.GetMyBookings)
 	booking.Get("/:id", middleware.JWTProtected, handlers.GetBookingByID)
+	booking.Get("/", middleware.JWTProtected, middleware.AdminOnly, handlers.GetAllBookings) // Admin only
 }
