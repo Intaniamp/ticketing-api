@@ -160,3 +160,58 @@ func DeleteSeatsByStudio(c *fiber.Ctx) error {
 		"deleted_count": affected,
 	})
 }
+
+// GetSeatsBySchedule godoc
+//
+//	@Summary		Lihat Denah Kursi Live
+//	@Description	Mengembalikan daftar semua kursi beserta statusnya (available/booked) untuk jadwal tayang tertentu. Ini yang dipakai User!
+//	@Tags			Seat
+//	@Produce		json
+//	@Param			schedule_id	path		int	true	"ID Jadwal Tayang"
+//	@Success		200			{array}		models.SeatStatus
+//	@Failure		500			{object}	models.ErrorResponse
+//	@Router			/seat/schedule/{schedule_id} [get]
+func GetSeatsBySchedule(c *fiber.Ctx) error {
+	scheduleID := c.Params("schedule_id")
+
+	db := config.ConnectDB()
+	defer db.Close()
+
+	// Query ajaib untuk langsung memisahkan kursi yang kosong dan yang sudah dipesan
+	query := `
+		SELECT s.id, s.seat_number,
+			CASE 
+				WHEN s.id IN (
+					SELECT bs.seat_id 
+					FROM booking_seat bs
+					JOIN booking b ON bs.booking_id = b.id
+					WHERE b.schedule_id = ? AND b.status IN ('pending', 'success')
+				) THEN 'booked' 
+				ELSE 'available' 
+			END as status
+		FROM seat s
+		WHERE s.studio_id = (SELECT studio_id FROM schedule WHERE id = ?)
+		ORDER BY s.id ASC
+	`
+
+	rows, err := db.Query(query, scheduleID, scheduleID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
+	}
+	defer rows.Close()
+
+	var seats []models.SeatStatus
+	for rows.Next() {
+		var seat models.SeatStatus
+		if err := rows.Scan(&seat.ID, &seat.SeatNumber, &seat.Status); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
+		}
+		seats = append(seats, seat)
+	}
+
+	if seats == nil {
+		seats = []models.SeatStatus{}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(seats)
+}

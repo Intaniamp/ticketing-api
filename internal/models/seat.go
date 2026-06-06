@@ -11,3 +11,10 @@ type BulkSeatRequest struct {
 	StudioID    int      `json:"studio_id" example:"1"`
 	SeatNumbers []string `json:"seat_numbers" example:"A1,A2,A3,B1,B2,B3"`
 }
+
+// untuk mengirim status live setiap kursi ke Frontend (Aplikasi User)
+type SeatStatus struct {
+	ID         int    `json:"id" example:"1"`
+	SeatNumber string `json:"seat_number" example:"F7"`
+	Status     string `json:"status" example:"available"` // isinya: 'available' atau 'booked'
+}

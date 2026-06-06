@@ -10,10 +10,13 @@ import (
 func SeatRoutes(api fiber.Router) {
 	seat := api.Group("/seat")
 
-	// Endpoint Publik (Bisa diakses user biasa untuk memilih kursi saat booking)
+	// 1. Ambil data master kursi fisik di dalam studio (biasanya untuk admin atau cek denah dasar)
 	seat.Get("/studio/:studio_id", handlers.GetSeatsByStudio)
 
-	// Endpoint Khusus Admin (Wajib login dan role = admin)
+	// 2. Ambil data status kursi LIVE (available/booked) berdasarkan jadwal tayang film! (Ini yang dipakai FE)
+	seat.Get("/schedule/:schedule_id", handlers.GetSeatsBySchedule)
+
+	// Endpoint Khusus Admin
 	seat.Post("/bulk", middleware.JWTProtected, middleware.AdminOnly, handlers.BulkCreateSeats)
 	seat.Delete("/:id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteSeat)
 	seat.Delete("/studio/:studio_id", middleware.JWTProtected, middleware.AdminOnly, handlers.DeleteSeatsByStudio)
