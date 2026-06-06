@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Println("Warning: Error loading .env file")
 	}
-	
+
 	// --- 1. Konfigurasi Swagger ---
 	docs.SwaggerInfo.Title = "Ticketing API Cinema"
 	docs.SwaggerInfo.Description = "API manajemen tiket bioskop - Project Multiplatform"
@@ -43,6 +43,9 @@ func main() {
 	app := fiber.New(fiber.Config{
 		AppName: "Ticketing API v1.0",
 	})
+
+	// Berikan izin agar semua file di dalam folder "./public/uploads" bisa diakses langsung via URL "/uploads"
+	app.Static("/uploads", "./public/uploads")
 
 	// 🟢 3. MIDDLEWARE HARUS DI SINI (Paling Atas)
 	// Agar semua rute di bawahnya (termasuk static file) kebagian izin CORS
