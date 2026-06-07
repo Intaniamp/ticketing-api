@@ -153,7 +153,7 @@ func CreateBooking(c *fiber.Ctx) error {
 //	@Tags			Booking
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Success		200	{array}		models.Booking
+//	@Success		200	{array}		models.BookingDetailResponse
 //	@Failure		500	{object}	models.ErrorResponse
 //	@Router			/booking/my-history [get]
 func GetMyBookings(c *fiber.Ctx) error {
@@ -170,13 +170,70 @@ func GetMyBookings(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
 
-	query := "SELECT id, user_id, schedule_id, booking_date, COALESCE(expired_at, ''), status, total_price FROM booking WHERE user_id = ? ORDER BY booking_date DESC"
-	bookings, err := fetchBookings(db, query, userID)
+	query := `
+		SELECT 
+			b.id, b.status, b.total_price, COALESCE(b.expired_at, ''),
+			f.title, COALESCE(f.poster, ''),
+			c.cinema_name,
+			sch.date, sch.time
+		FROM booking b
+		JOIN schedule sch ON b.schedule_id = sch.id
+		JOIN film f ON sch.film_id = f.id
+		JOIN studio st ON sch.studio_id = st.id
+		JOIN cinema c ON st.cinema_id = c.id
+		WHERE b.user_id = ? AND b.status = 'success'
+		ORDER BY b.booking_date DESC
+	`
+
+	rows, err := db.Query(query, userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
+	defer rows.Close()
 
-	return c.Status(fiber.StatusOK).JSON(bookings)
+	history := make([]models.BookingDetailResponse, 0)
+
+	for rows.Next() {
+		var res models.BookingDetailResponse
+		err := rows.Scan(
+			&res.ID, &res.Status, &res.TotalPrice, &res.ExpiredAt,
+			&res.FilmTitle, &res.PosterURL,
+			&res.CinemaName,
+			&res.Date, &res.Time,
+		)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
+		}
+
+		uuidParts := strings.Split(res.ID, "-")
+		if len(uuidParts) > 0 {
+			res.OrderID = "#CM-" + strings.ToUpper(uuidParts[0])
+		} else {
+			res.OrderID = "#CM-" + res.ID
+		}
+
+		seatQuery := `
+			SELECT s.seat_number 
+			FROM seat s
+			JOIN booking_seat bs ON s.id = bs.seat_id
+			WHERE bs.booking_id = ?
+		`
+		seatRows, err := db.Query(seatQuery, res.ID)
+		res.Seats = []string{}
+		if err == nil {
+			for seatRows.Next() {
+				var seatNum string
+				if err := seatRows.Scan(&seatNum); err == nil {
+					res.Seats = append(res.Seats, seatNum)
+				}
+			}
+			seatRows.Close()
+		}
+
+		history = append(history, res)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(history)
 }
 
 // GetAllBookings godoc

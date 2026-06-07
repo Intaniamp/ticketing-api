@@ -472,7 +472,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Booking'
+              $ref: '#/definitions/models.BookingDetailResponse'
             type: array
         "500":
           description: Internal Server Error

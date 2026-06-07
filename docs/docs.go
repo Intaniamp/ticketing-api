@@ -125,7 +125,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Booking"
+                                "$ref": "#/definitions/models.BookingDetailResponse"
                             }
                         }
                     },
