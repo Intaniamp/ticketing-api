@@ -51,6 +51,7 @@ func JWTProtected(c *fiber.Ctx) error {
 func AdminOnly(c *fiber.Ctx) error {
 	user := c.Locals("user").(jwt.MapClaims)
 	role := user["role"].(string)
+	//if bukan admin, return forbidden
 	if role != "admin" {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"message": "Forbidden: Admin only"})
 	}

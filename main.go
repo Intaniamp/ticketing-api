@@ -44,9 +44,6 @@ func main() {
 		AppName: "Ticketing API v1.0",
 	})
 
-	// Berikan izin agar semua file di dalam folder "./public/uploads" bisa diakses langsung via URL "/uploads"
-	
-
 	// 🟢 3. MIDDLEWARE HARUS DI SINI (Paling Atas)
 	// Agar semua rute di bawahnya (termasuk static file) kebagian izin CORS
 	app.Use(logger.New())

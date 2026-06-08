@@ -17,10 +17,11 @@ func SeatRoutes(api fiber.Router) {
 		CacheControl: true,
 	})
 
-	// 1. Ambil data master kursi fisik di dalam studio (biasanya untuk admin atau cek denah dasar)
+	// 1. Ambil data master kursi fisik di dalam studio (biasanya untuk admin atau cek denah dasar), jarang berubah.
 	seat.Get("/studio/:studio_id", seatCache, handlers.GetSeatsByStudio)
 
-	// 2. Ambil data status kursi LIVE (available/booked) berdasarkan jadwal tayang film! (Ini yang dipakai FE)
+	// 2. Ambil data status kursi LIVE (available/booked) berdasarkan jadwal tayang film! (Ini yang dipakai FE), 
+	// ini sering berubah karena berdasarkan pilihan jadwal tayang, apakah seat booked/avail.
 	seat.Get("/schedule/:schedule_id", handlers.GetSeatsBySchedule)
 
 	// Endpoint Khusus Admin

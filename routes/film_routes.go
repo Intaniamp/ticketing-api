@@ -13,7 +13,7 @@ import (
 func FilmRoutes(api fiber.Router) {
 	film := api.Group("/film")
 
-	//caching
+	//caching untuk endpoint GET film, dengan durasi 30 menit dan dukungan Cache-Control header
 	filmCache := cache.New(cache.Config{
 		Expiration:   30 * time.Minute,
 		CacheControl: true,
