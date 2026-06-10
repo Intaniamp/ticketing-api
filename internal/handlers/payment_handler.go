@@ -14,19 +14,19 @@ import (
 
 // ProcessPayment godoc
 //
-//  @Summary        Proses Pembayaran Tiket
-//  @Description    Melakukan simulasi pembayaran. Akan mengubah status booking menjadi 'success'.
-//  @Tags           Payment
-//  @Security       BearerAuth
-//  @Accept         json
-//  @Produce        json
-//  @Param          request body        models.PaymentRequest   true    "Data Pembayaran"
-//  @Success        201     {object}    models.Payment
-//  @Failure        400     {object}    models.ErrorResponse
-//  @Failure        403     {object}    models.ErrorResponse
-//  @Failure        404     {object}    models.ErrorResponse
-//  @Failure        500     {object}    models.ErrorResponse
-//  @Router         /payment [post]
+//	@Summary        Proses Pembayaran Tiket
+//	@Description    Melakukan simulasi pembayaran. Akan mengubah status booking menjadi 'success'.
+//	@Tags           Payment
+//	@Security       BearerAuth
+//	@Accept         json
+//	@Produce        json
+//	@Param          request body        models.PaymentRequest   true    "Data Pembayaran"
+//	@Success        201     {object}    models.Payment
+//	@Failure        400     {object}    models.ErrorResponse
+//	@Failure        403     {object}    models.ErrorResponse
+//	@Failure        404     {object}    models.ErrorResponse
+//	@Failure        500     {object}    models.ErrorResponse
+//	@Router         /payment [post]
 func ProcessPayment(c *fiber.Ctx) error {
 	var req models.PaymentRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -120,7 +120,16 @@ func ProcessPayment(c *fiber.Ctx) error {
 }
 
 // GetMyPayments godoc
-// ... [Sama persis seperti kodingan kamu sebelumnya] ...
+//
+//	@Summary		Ambil riwayat pembayaran user
+//	@Description	Mengembalikan daftar semua pembayaran sukses/gagal milik user yang sedang login
+//	@Tags			Payment
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Success		200	{array}		models.Payment
+//	@Failure		401	{object}	models.ErrorResponse
+//	@Failure		500	{object}	models.ErrorResponse
+//	@Router			/payment/my-history [get]
 func GetMyPayments(c *fiber.Ctx) error {
 	// 1. Ambil koper claims dari JWT
 	claims, ok := c.Locals("user").(jwt.MapClaims)
@@ -168,7 +177,15 @@ func GetMyPayments(c *fiber.Ctx) error {
 }
 
 // GetAllPayments godoc
-// ... [Sama persis seperti kodingan kamu sebelumnya] ...
+//
+//	@Summary		Ambil semua data pembayaran (Khusus Admin)
+//	@Description	Mengembalikan seluruh riwayat pembayaran dari semua user di dalam sistem
+//	@Tags			Payment
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Success		200	{array}		models.Payment
+//	@Failure		500	{object}	models.ErrorResponse
+//	@Router			/payment [get]
 func GetAllPayments(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
