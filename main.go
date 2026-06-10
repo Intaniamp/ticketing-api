@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/websocket/v2" // 🟢 TAMBAHAN: Import websocket
+	"github.com/gofiber/websocket/v2" 
 	"github.com/joho/godotenv"
 	swagger "github.com/swaggo/fiber-swagger"
 )
@@ -57,34 +57,42 @@ func main() {
 	}))
 
 	// 🟢 TAMBAHAN: Middleware khusus mengecek koneksi WebSocket (Biar ga crash)
-	app.Use("/ws", func(c *fiber.Ctx) error {
-		if websocket.IsWebSocketUpgrade(c) {
-			c.Locals("allowed", true)
-			return c.Next()
+		// 🟢 REVISI: Tambahkan /:userID di akhir rute agar tahu ini milik siapa
+	app.Get("/ws/notifications/:userID", websocket.New(func(c *websocket.Conn) {
+		// 1. Ambil userID dari parameter URL
+		userID := c.Params("userID")
+		if userID == "" {
+			log.Println("⚠️ Koneksi ditolak: User ID tidak ditemukan di URL")
+			c.Close()
+			return
 		}
-		return fiber.ErrUpgradeRequired
-	})
 
-	// 🟢 TAMBAHAN: Route Handler untuk WebSocket Notifications
-	app.Get("/ws/notifications", websocket.New(func(c *websocket.Conn) {
+		// 2. Buat struktur objek client baru menggunakan struct yang sudah kita buat di utils
+		newClient := &utils.Client{
+			Conn:   c,
+			UserID: userID,
+		}
+
+		// 3. Masukkan ke dalam map dengan aman menggunakan Mutex
 		utils.WSManager.Mutex.Lock()
-		utils.WSManager.Clients[c] = true
+		utils.WSManager.Clients[newClient] = true
 		utils.WSManager.Mutex.Unlock()
 
-		log.Println("🔌 Client terkoneksi ke WebSocket!")
+		log.Printf("🔌 Client dengan UserID %s berhasil terkoneksi ke WebSocket!\n", userID)
 
 		defer func() {
 			utils.WSManager.Mutex.Lock()
-			delete(utils.WSManager.Clients, c)
+			delete(utils.WSManager.Clients, newClient)
 			utils.WSManager.Mutex.Unlock()
 			c.Close()
-			log.Println("❌ Client disconnect dari WebSocket.")
+			log.Printf("❌ Client dengan UserID %s disconnect dari WebSocket.\n", userID)
 		}()
 
+		// 5. Keep-alive loop: Menjaga koneksi tetap hidup
 		for {
 			_, _, err := c.ReadMessage()
 			if err != nil {
-				break
+				break // Keluar loop jika koneksi terputus (misal: HP mati atau pindah halaman)
 			}
 		}
 	}))
