@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/websocket/v2" // 🟢 TAMBAHAN: Import websocket
 	"github.com/joho/godotenv"
 	swagger "github.com/swaggo/fiber-swagger"
 )
@@ -44,8 +45,10 @@ func main() {
 		AppName: "Ticketing API v1.0",
 	})
 
+	// 🟢 TAMBAHAN: Jalankan Hub WebSocket di background (Wajib sebelum rute lain)
+	go utils.StartWebSocketHub()
+
 	// 🟢 3. MIDDLEWARE HARUS DI SINI (Paling Atas)
-	// Agar semua rute di bawahnya (termasuk static file) kebagian izin CORS
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
@@ -53,8 +56,40 @@ func main() {
 		AllowMethods: "GET, POST, HEAD, PUT, DELETE, PATCH",
 	}))
 
-	// 🟢 4. SETELAH CORS, BARU BUKA FOLDER STATIC
-	// Akses gambar poster di: http://localhost:3000/uploads/namafile.jpg
+	// 🟢 TAMBAHAN: Middleware khusus mengecek koneksi WebSocket (Biar ga crash)
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
+
+	// 🟢 TAMBAHAN: Route Handler untuk WebSocket Notifications
+	app.Get("/ws/notifications", websocket.New(func(c *websocket.Conn) {
+		utils.WSManager.Mutex.Lock()
+		utils.WSManager.Clients[c] = true
+		utils.WSManager.Mutex.Unlock()
+
+		log.Println("🔌 Client terkoneksi ke WebSocket!")
+
+		defer func() {
+			utils.WSManager.Mutex.Lock()
+			delete(utils.WSManager.Clients, c)
+			utils.WSManager.Mutex.Unlock()
+			c.Close()
+			log.Println("❌ Client disconnect dari WebSocket.")
+		}()
+
+		for {
+			_, _, err := c.ReadMessage()
+			if err != nil {
+				break
+			}
+		}
+	}))
+
+	// 🟢 4. SETELAH CORS, BARU BUKA FOLDER STATIC (Dengan Cache Dimatikan!)
 	app.Static("/uploads", "./public/uploads")
 	app.Static("/", "./public")
 
@@ -65,7 +100,7 @@ func main() {
 	// --- 6. Setup API Routes ---
 	utils.StartTicketSweeper()
 
-	// --- 5. Setup API Routes ---
+	// Setup API Routes
 	routes.SetupRoutes(app)
 
 	// Redirect kalau buka localhost:3000 langsung ke Swagger

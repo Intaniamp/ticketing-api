@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"ticketing-api/config"
 	"ticketing-api/internal/models"
+	"ticketing-api/utils" // 🟢 TAMBAHAN: Import folder utils untuk panggil WebSocket
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,19 +14,19 @@ import (
 
 // ProcessPayment godoc
 //
-//	@Summary		Proses Pembayaran Tiket
-//	@Description	Melakukan simulasi pembayaran. Akan mengubah status booking menjadi 'success'.
-//	@Tags			Payment
-//	@Security		BearerAuth
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		models.PaymentRequest	true	"Data Pembayaran"
-//	@Success		201		{object}	models.Payment
-//	@Failure		400		{object}	models.ErrorResponse
-//	@Failure		403		{object}	models.ErrorResponse
-//	@Failure		404		{object}	models.ErrorResponse
-//	@Failure		500		{object}	models.ErrorResponse
-//	@Router			/payment [post]
+//  @Summary        Proses Pembayaran Tiket
+//  @Description    Melakukan simulasi pembayaran. Akan mengubah status booking menjadi 'success'.
+//  @Tags           Payment
+//  @Security       BearerAuth
+//  @Accept         json
+//  @Produce        json
+//  @Param          request body        models.PaymentRequest   true    "Data Pembayaran"
+//  @Success        201     {object}    models.Payment
+//  @Failure        400     {object}    models.ErrorResponse
+//  @Failure        403     {object}    models.ErrorResponse
+//  @Failure        404     {object}    models.ErrorResponse
+//  @Failure        500     {object}    models.ErrorResponse
+//  @Router         /payment [post]
 func ProcessPayment(c *fiber.Ctx) error {
 	var req models.PaymentRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -104,7 +105,10 @@ func ProcessPayment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
 	}
 
-	// 6. Kembalikan response sukses
+	// 🟢 6. TRIGGER WEBSOCKET DI SINI! (Setelah commit database sukses)
+	utils.SendPaymentNotification(userID, "Hore! Pembayaran tiket kamu berhasil. Silakan cek detailnya di menu Tiket Saya.", "success")
+
+	// 7. Kembalikan response sukses
 	return c.Status(fiber.StatusCreated).JSON(models.Payment{
 		ID:            newPaymentID,
 		BookingID:     req.BookingID,
@@ -116,16 +120,7 @@ func ProcessPayment(c *fiber.Ctx) error {
 }
 
 // GetMyPayments godoc
-//
-//	@Summary		Ambil riwayat pembayaran user
-//	@Description	Mengembalikan daftar semua pembayaran sukses/gagal milik user yang sedang login
-//	@Tags			Payment
-//	@Security		BearerAuth
-//	@Produce		json
-//	@Success		200	{array}		models.Payment
-//	@Failure		401	{object}	models.ErrorResponse
-//	@Failure		500	{object}	models.ErrorResponse
-//	@Router			/payment/my-history [get]
+// ... [Sama persis seperti kodingan kamu sebelumnya] ...
 func GetMyPayments(c *fiber.Ctx) error {
 	// 1. Ambil koper claims dari JWT
 	claims, ok := c.Locals("user").(jwt.MapClaims)
@@ -144,12 +139,12 @@ func GetMyPayments(c *fiber.Ctx) error {
 
 	// 3. JOIN tabel payment dan booking untuk mengambil pembayaran milik user ini saja
 	query := `
-		SELECT p.id, p.booking_id, p.amount, p.payment_method, p.payment_date, p.payment_status 
-		FROM payment p
-		JOIN booking b ON p.booking_id = b.id
-		WHERE b.user_id = ?
-		ORDER BY p.payment_date DESC
-	`
+        SELECT p.id, p.booking_id, p.amount, p.payment_method, p.payment_date, p.payment_status 
+        FROM payment p
+        JOIN booking b ON p.booking_id = b.id
+        WHERE b.user_id = ?
+        ORDER BY p.payment_date DESC
+    `
 	rows, err := db.Query(query, userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(models.ErrorResponse{Message: err.Error()})
@@ -173,15 +168,7 @@ func GetMyPayments(c *fiber.Ctx) error {
 }
 
 // GetAllPayments godoc
-//
-//	@Summary		Ambil semua data pembayaran (Khusus Admin)
-//	@Description	Mengembalikan seluruh riwayat pembayaran dari semua user di dalam sistem
-//	@Tags			Payment
-//	@Security		BearerAuth
-//	@Produce		json
-//	@Success		200	{array}		models.Payment
-//	@Failure		500	{object}	models.ErrorResponse
-//	@Router			/payment [get]
+// ... [Sama persis seperti kodingan kamu sebelumnya] ...
 func GetAllPayments(c *fiber.Ctx) error {
 	db := config.ConnectDB()
 	defer db.Close()
