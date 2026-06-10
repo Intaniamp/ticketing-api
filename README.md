@@ -19,7 +19,7 @@ Di dalam API ini telah mendukung pengelolaan data seperti film, genre, studio, d
 ## 3. Database Diagram
 
 ERD sistem dapat dilihat pada gambar berikut:
-[docs/erd.png]
+![ERD Cinema+](docs/new_erd.png)
 
 ## 4. Installation Guide
 
